@@ -79,7 +79,7 @@ void setup() {
   // When the device wakes up, check if wifi is enabled, then connect and send an event to sinric pro with door state
   if (sendState) {
       setup_wifi();
-      SinricPro.begin(APP_KEY, APP_SECRET, "testws.sinric.pro");  
+      SinricPro.begin(APP_KEY, APP_SECRET);  
       wait_for_sinricpro();      
       send_contact_state(); 
       sendState = false ;
