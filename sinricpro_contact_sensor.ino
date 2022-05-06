@@ -35,11 +35,11 @@ typedef enum {
 
 #define BAUD_RATE 115200
 
-#define CONTACT_ID        "6274fa311d6a67083b4ab5d1"
-#define APP_KEY           "9024c456-7774-4761-b390-6e4a7c1b5ff5"   // Should look like "de0bxxxx-1x3x-4x3x-ax2x-5dabxxxxxxxx"
-#define APP_SECRET        "a7a50c4a-e838-4e7a-ae73-bc9875a3c0da-6b30fe1e-d5a4-478c-9183-596604b2d5f2"   // Should look like "5f36xxxx-x3x7-4x3x-xexe-e86724a9xxxx-4c4axxxx-3x3x-x5xe-x9x3-333d65xxxxxx"
-#define WIFI_SSID         "June-2G"
-#define WIFI_PASS         "wifipassword"
+#define CONTACT_ID        ""
+#define APP_KEY           ""   // Should look like "de0bxxxx-1x3x-4x3x-ax2x-5dabxxxxxxxx"
+#define APP_SECRET        ""   // Should look like "5f36xxxx-x3x7-4x3x-xexe-e86724a9xxxx-4c4axxxx-3x3x-x5xe-x9x3-333d65xxxxxx"
+#define WIFI_SSID         ""
+#define WIFI_PASS         ""
 
 RTC_DATA_ATTR bool volatile doorClosed  = true ;
 RTC_DATA_ATTR bool volatile sendState = false ;
