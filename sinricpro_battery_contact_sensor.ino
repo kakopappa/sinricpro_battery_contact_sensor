@@ -35,11 +35,11 @@ typedef enum {
 
 #define BAUD_RATE 115200
 
-#define CONTACT_ID        ""
-#define APP_KEY           ""   // Should look like "de0bxxxx-1x3x-4x3x-ax2x-5dabxxxxxxxx"
-#define APP_SECRET        ""   // Should look like "5f36xxxx-x3x7-4x3x-xexe-e86724a9xxxx-4c4axxxx-3x3x-x5xe-x9x3-333d65xxxxxx"
-#define WIFI_SSID         ""
-#define WIFI_PASS         ""
+#define CONTACT_ID        "6274fa311d6a67083b4ab5d1"
+#define APP_KEY           "9024c456-7774-4761-b390-6e4a7c1b5ff5"   // Should look like "de0bxxxx-1x3x-4x3x-ax2x-5dabxxxxxxxx"
+#define APP_SECRET        "a7a50c4a-e838-4e7a-ae73-bc9875a3c0da-6b30fe1e-d5a4-478c-9183-596604b2d5f2"   // Should look like "5f36xxxx-x3x7-4x3x-xexe-e86724a9xxxx-4c4axxxx-3x3x-x5xe-x9x3-333d65xxxxxx"
+#define WIFI_SSID         "June-2G"
+#define WIFI_PASS         "wifipassword"
 
 RTC_DATA_ATTR bool volatile doorClosed  = true ;
 RTC_DATA_ATTR bool volatile sendState = false ;
@@ -50,9 +50,10 @@ SinricProContactsensor &myContact = SinricPro[CONTACT_ID];
 gpio_num_t const REED_PIN = GPIO_NUM_15 ;
 gpio_num_t const LED_PIN  = GPIO_NUM_14 ;
 
-static void deep_sleep_when_door_open_or_closed();                                                         // Sleep modes
+static void deep_sleep_when_door_open_or_closed();
 static void display_wake_up_reason( esp_sleep_wakeup_cause_t wakeup_reason ) ;
-void setup_wifi();
+void start_wifi();
+void on_wifi_connect(arduino_event_id_t event, arduino_event_info_t info);
 
 #ifdef STATIC_IP    
   IPAddress localIP(192,168,1,124);
@@ -78,47 +79,40 @@ void setup() {
 
   // When the device wakes up, check if wifi is enabled, then connect and send an event to sinric pro with door state
   if (sendState) {
-      setup_wifi();
+      start_wifi();
       SinricPro.begin(APP_KEY, APP_SECRET);  
       wait_for_sinricpro();      
       send_contact_state(); 
+      stop_sinricpro(); 
+      stop_wifi();
       sendState = false ;
   }
 
   if (doorClosed) {
-      Serial.printf("Woke up because door closed!.\n" ) ;
+      Serial.printf("setup(): door closed!.\n" ) ;
       doorClosed  = false ;
       sendState = true ;
       deep_sleep_when_door_open_or_closed() ;
   }
   else {
-      Serial.printf("Woke up because door opened!.\n" ) ;
+      Serial.printf("setup(): door opened!.\n" ) ;
       doorClosed  = true ;
       sendState = true ;
       deep_sleep_when_door_open_or_closed() ;
   }
 }
     
-/* Goes into deep sleep mode and wakes when the reed switch closes */
+/* Goes into deep sleep mode and wakes when the reed switch closes or open */
 static void deep_sleep_when_door_open_or_closed() {
-  if(SinricPro.isConnected()) {
-    stop_sinricpro(); 
-  }
-
-  // Turn on WiFi completely
-  WiFi.disconnect(true);
-  WiFi.mode(WIFI_OFF);
-  esp_wifi_stop();
-
   esp_sleep_enable_ext0_wakeup(REED_PIN, doorClosed ? REED_CLOSED : REED_OPEN) ;
 
   //esp_deep_sleep_pd_config(ESP_PD_DOMAIN_RTC_FAST_MEM, ESP_PD_OPTION_OFF);
   //esp_deep_sleep_pd_config(ESP_PD_DOMAIN_RTC_SLOW_MEM, ESP_PD_OPTION_OFF);
 
-  // LED off
+  // LED off just before
   digitalWrite(LED_PIN, LED_OFF) ;
 
-  //adc_power_release();
+  //adc_power_release(); // 
         
   esp_deep_sleep_start() ;
 
@@ -139,29 +133,24 @@ static void display_wake_up_reason( esp_sleep_wakeup_cause_t wakeup_reason ) {
     }
 }
  
-void loop() {
-  // put your main code here, to run repeatedly:
-
-}
- 
-void onWiFiConnect(arduino_event_id_t event, arduino_event_info_t info) {
+void on_wifi_connect(arduino_event_id_t event, arduino_event_info_t info) {
    wifi_cache.channel = info.wifi_sta_connected.channel;
    memcpy(wifi_cache.bssid, info.wifi_sta_connected.bssid, sizeof(wifi_cache.bssid));
 }
 
-void setup_wifi() {
-    Serial.printf("setup_wifi(): Setup WiFi..\n") ;    
+void start_wifi() {
+    Serial.printf("start_wifi(): Setup WiFi..\n") ;    
     WiFi.persistent(false);
     WiFi.mode(WIFI_STA);
 #ifdef STATIC_IP    
     WiFi.config(localIP, gateway, subnet, dns);
 #endif
 
-    WiFi.onEvent(onWiFiConnect, ARDUINO_EVENT_WIFI_STA_CONNECTED);
+    WiFi.onEvent(on_wifi_connect, ARDUINO_EVENT_WIFI_STA_CONNECTED);
 
 #ifdef WIFI_CACHE
     if (wifi_cache.channel > 0) {
-        Serial.printf("setup_wifi(): Using cached WiFi channel ..\n") ;    
+        Serial.printf("start_wifi(): Using cached WiFi channel ..\n") ;    
         WiFi.begin(WIFI_SSID, WIFI_PASS, wifi_cache.channel, wifi_cache.bssid);
     } else {
         WiFi.begin(WIFI_SSID, WIFI_PASS);
@@ -169,6 +158,13 @@ void setup_wifi() {
 #elif
     WiFi.begin(WIFI_SSID, WIFI_PASS);
 #endif
+}
+
+void stop_wifi(){
+   // Turn on WiFi completely
+  WiFi.disconnect(true);
+  WiFi.mode(WIFI_OFF);
+  esp_wifi_stop();
 }
 
 void stop_sinricpro() {
@@ -180,7 +176,7 @@ void stop_sinricpro() {
     yield();
   }
 }
-
+ 
 void wait_for_sinricpro() {
   while (SinricPro.isConnected() == false) { // wait for connect
     SinricPro.handle();
@@ -196,3 +192,7 @@ void send_contact_state() {
   SinricPro.handle();
   Serial.printf("send_contact_state(): Sent ! \n") ;    
 } 
+
+void loop() {
+  // put your main code here, to run repeatedly:
+}
