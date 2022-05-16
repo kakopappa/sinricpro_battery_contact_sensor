@@ -1,8 +1,16 @@
-# Battery powered contact sensor for kitchen door using Sinric Pro
+# Battery powered contact sensor for door using Sinric Pro
 
-This repo is a work in progress !
+This project is a simple wifi contact sensor based on Sinric Pro IOT platform. If the door is opened or closed it sends a message to my phone via Sinric Pro app. 
+ 
+Parts used:
 
-![image description](https://github.com/kakopappa/sinricpro_battery_contact_sensor/blob/main/Screenshot%202022-05-06%20172155.png)
+1. FireBeetle ESP32-E (https://wiki.dfrobot.com/FireBeetle_Board_ESP32_E_SKU_DFR0654)
+2. Magnetic Contact Sensor (https://th.aliexpress.com/item/32684706524.html)
+3. Battery (LiPo) https://www.arduitronics.com/product/2238/3-7v-2000mah-lithium-battery-rechargeable-polymer-lipo
+
+Magnetic is connected to GPIO 15
+LED is connected to GPIO 14
+ 
 
 
 
