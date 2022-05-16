@@ -58,7 +58,8 @@ Battery &battery = SinricPro[BATTERY_ID];
 
 gpio_num_t const REED_PIN = GPIO_NUM_15 ;
 gpio_num_t const LED_PIN  = GPIO_NUM_14 ;
- 
+
+// function prototypes
 static void deep_sleep_when_door_open_or_closed();
 static void display_wake_up_reason( esp_sleep_wakeup_cause_t wakeup_reason ) ;
 static void start_wifi();
@@ -109,6 +110,9 @@ void setup() {
       doorClosed  = true ;
       sendState = true ;
   } 
+
+  led_off();
+  deep_sleep_when_door_open_or_closed();  
 }
  
 static void report_state() {
