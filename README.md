@@ -11,6 +11,8 @@ Parts used:
 Magnetic is connected to GPIO 15
 LED is connected to GPIO 14
  
+ DEMO:
+<video src='https://github.com/kakopappa/sinricpro_battery_contact_sensor/raw/main/demo/video.mp4' width=180/>
 
 
 
